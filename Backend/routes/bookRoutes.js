@@ -10,7 +10,6 @@ router.get('/:id', bookcontroller.getBookById);
 
 // Add a new book with file upload
 router.post('/add', authenticationJwt, isAdmin, upload, bookcontroller.createBook);
-
 router.put('/:id', authenticationJwt, isAdmin, bookcontroller.updateBook);
 router.delete('/:id', authenticationJwt, isAdmin, bookcontroller.deleteBook);
 

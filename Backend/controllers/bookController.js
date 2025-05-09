@@ -3,7 +3,7 @@ const { Op } = require('sequelize');
 
 exports.getAllBooks = async(req,res) => {
     try {
-        const{title , author , minPrice , maxPrice,category} = req.query;
+        const{title , author , minPrice , maxPrice,category , sortBy = 'title' , order  = 'ASC'} = req.query;
 
         const whereClause ={}
 
@@ -15,8 +15,9 @@ exports.getAllBooks = async(req,res) => {
             if(minPrice) whereClause.price[Op.gte] = parseFloat(minPrice)
             if(maxPrice) whereClause.price[Op.lte] = parseFloat(maxPrice)
         }
+        const orderClause = [[sortBy,order.toUpperCase()]]
 
-        const books = await Book.findAll({where : whereClause})
+        const books = await Book.findAll({where : whereClause , order : orderClause})
         res.json(books)
     } catch (error) {
         res.status(500).json({message :"Error fetching books",error : error.message})
@@ -37,9 +38,14 @@ exports.getBookById = async(req,res) =>{
 exports.createBook = async(req,res) =>{
   try {
     const {title,author , price,stock, description , category } = req.body;
+    
+    if (!title || !author || !price || !stock || !category) {
+    return res.status(400).json({ message: "All fields are required." });
+}
+
     const imageURL = req.file ? `http://localhost:8000/uploads/${req.file.filename}` : null;
     const newBook = await Book.create({title,author,description,price,stock,category,imageURL})
-    res.status(200).json(newBook)
+    res.status(201).json(newBook)
     
   } catch (error) {
     res.status(500).json({message :"Error Creating books",error : error.message})
@@ -73,7 +79,7 @@ exports.deleteBook = async(req,res) =>{
         if(!book) return res.status(404).json({message : "Book not found"})
 
         await book.destroy();
-        res.json({message : "deleted successfully"})
+        res.json({message : "Deleted successfully" , deletedBook : book})
     } catch (error) {
         res.status(500).json({message :"Error deleting books",error : error.message})
         
